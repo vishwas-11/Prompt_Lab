@@ -8,7 +8,7 @@ router = APIRouter(prefix="/generate", tags=["Chain-of-Thought"])
 
 def extract_steps(text: str):
     
-    # spilling of the steps based on newlines, this is a simple heuristic and can be improved
+    # splitting of the steps based on newlines, this is a simple heuristic and can be improved
     lines = text.split("\n")
 
     # Clean and filter meaningful steps

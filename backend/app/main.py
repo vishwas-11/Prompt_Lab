@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from app.api import react, test, roles, cot, self_consistency
-from app.api import react_agent, react, tot, injection, optimize, versioning
+from app.api import react, test, roles, cot, self_consistency, tot, optimize, versioning, injection
+
 
 app = FastAPI(title="Prompt Engineering Lab")
 
