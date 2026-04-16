@@ -13,24 +13,34 @@ async def check_injection(request: InjectionRequest):
 
     is_attack, pattern = detect_injection(request.input)
 
+    result = {
+        "input": request.input,
+        "security": {
+            "is_attack": is_attack,
+            "detected_pattern": pattern,
+            "status": "safe"
+        },
+        "execution": {
+            "sanitized_input": None,
+            "llm_response": None
+        }
+    }
+
+    #  If attack detected
     if is_attack:
         sanitized = sanitize_input(request.input)
 
         response = llm.invoke(sanitized)
 
-        return {
-            "status": "blocked_or_sanitized",
-            "detected_pattern": pattern,
-            "original_input": request.input,
-            "sanitized_input": sanitized,
-            "llm_response": response.content
-        }
+        result["security"]["status"] = "blocked_or_sanitized"
+        result["execution"]["sanitized_input"] = sanitized
+        result["execution"]["llm_response"] = response.content
 
-    # Safe input
+        return result
+
+    #  Safe input
     response = llm.invoke(request.input)
 
-    return {
-        "status": "safe",
-        "input": request.input,
-        "llm_response": response.content
-    }
+    result["execution"]["llm_response"] = response.content
+
+    return result

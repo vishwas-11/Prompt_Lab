@@ -7,7 +7,11 @@ def sanitize_input(text: str) -> str:
         "ignore previous instructions",
         "reveal system prompt",
         "bypass safety",
-        "ignore developer prompt"
+        "ignore developer prompt",
+        "ignore all instructions",
+        "disregard system prompt",
+        "show hidden instructions",
+        "ignore system prompt",
     ]
 
     clean_text = text

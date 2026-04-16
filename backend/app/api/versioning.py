@@ -1,13 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.version_schema import CreatePromptRequest, TestPromptRequest
-from app.db.prompt_repo import create_prompt, get_prompt_versions, get_latest_prompt
+from app.db.prompt_repo import (
+    create_prompt,
+    get_prompt_versions,
+    get_latest_prompt,
+    get_prompt_by_version   
+)
 from app.core.llm import get_llm
-from app.utils.diff import simple_diff
+from app.utils.diff import github_style_diff
 
 router = APIRouter(prefix="/version", tags=["Prompt Versioning"])
 
 
-# Create new version
+#  Create new version
 @router.post("/create")
 async def create_new_prompt(request: CreatePromptRequest):
     doc = await create_prompt(request.name, request.content)
@@ -29,12 +34,16 @@ async def get_history(name: str):
     }
 
 
-#  Test latest version
+#  Test ANY version (UPDATED)
 @router.post("/test")
 async def test_prompt(request: TestPromptRequest):
     llm = get_llm()
 
-    prompt = await get_latest_prompt(request.name)
+    #  NEW: support version selection
+    if request.version:
+        prompt = await get_prompt_by_version(request.name, request.version)
+    else:
+        prompt = await get_latest_prompt(request.name)
 
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
@@ -45,28 +54,43 @@ async def test_prompt(request: TestPromptRequest):
 
     return {
         "version": prompt["version"],
+        "prompt": prompt["content"],
         "output": response.content
     }
 
 
-#  Compare versions
+#  Compare versions (structured diff)
 @router.get("/diff/{name}")
 async def compare_versions(name: str):
     versions = await get_prompt_versions(name)
 
-    if not versions:
-        raise HTTPException(status_code=404, detail="Prompt not found")
-
     if len(versions) < 2:
-        raise HTTPException(status_code=409, detail="Not enough versions to compare")
+        raise HTTPException(status_code=409, detail="Not enough versions")
 
     old = versions[-2]["content"]
     new = versions[-1]["content"]
 
-    diff = simple_diff(old, new)
+    diff = github_style_diff(old, new)
 
     return {
         "old_version": versions[-2]["version"],
         "new_version": versions[-1]["version"],
         "diff": diff
+    }
+
+
+#  ROLLBACK FEATURE
+@router.post("/rollback")
+async def rollback_prompt(name: str, version: int):
+    prompt = await get_prompt_by_version(name, version)
+
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Version not found")
+
+    # create new version with old content
+    new_doc = await create_prompt(name, prompt["content"])
+
+    return {
+        "message": f"Rolled back to version {version}",
+        "new_version": new_doc["version"]
     }

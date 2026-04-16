@@ -32,3 +32,12 @@ async def get_prompt_versions(name: str):
 async def get_latest_prompt(name: str):
     prompt = await collection.find({"name": name}).sort("version", -1).to_list(1)
     return serialize_doc(prompt[0]) if prompt else None
+
+
+
+async def get_prompt_by_version(name: str, version: int):
+    doc = await collection.find_one({
+        "name": name,
+        "version": version
+    })
+    return doc

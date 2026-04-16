@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class CreatePromptRequest(BaseModel):
     name: str
@@ -8,3 +9,4 @@ class CreatePromptRequest(BaseModel):
 class TestPromptRequest(BaseModel):
     name: str
     input: str
+    version: Optional[int] = None

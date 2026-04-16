@@ -7,15 +7,11 @@ import re
 router = APIRouter(prefix="/generate", tags=["Tree-of-Thoughts"])
 
 
-#  Extract FINAL ANSWER
 def extract_final_answer(text: str):
     match = re.search(r"FINAL_ANSWER:\s*(.*)", text)
-    if match:
-        return match.group(1).strip()
-    return None
+    return match.group(1).strip() if match else None
 
 
-#  Better Scoring Function
 def score_thought(thought: str):
     score = 0
 
@@ -31,57 +27,92 @@ def score_thought(thought: str):
     return score + len(thought)
 
 
+# 🌳 Recursive tree builder
+def expand_tree(llm, problem, node, depth, max_depth, num_branches):
+    if depth >= max_depth:
+        return
+
+    node["children"] = []
+
+    for _ in range(num_branches):
+        context = node["thought"]
+
+        prompt = build_tot_prompt(problem, context)
+
+        response = llm.invoke(prompt)
+        thought = response.content.strip()
+
+        child_node = {
+            "thought": thought,
+            "score": score_thought(thought),
+            "children": []
+        }
+
+        node["children"].append(child_node)
+
+        # Recursive expansion
+        expand_tree(llm, problem, child_node, depth + 1, max_depth, num_branches)
+
+
+# 🏆 Extract best path
+def find_best_path(node):
+    best_path = []
+    best_score = -1
+
+    def dfs(n, path):
+        nonlocal best_path, best_score
+
+        current_path = path + [n]
+
+        if not n["children"]:
+            total_score = sum(x["score"] for x in current_path)
+
+            if total_score > best_score:
+                best_score = total_score
+                best_path = current_path
+
+        for child in n["children"]:
+            dfs(child, current_path)
+
+    dfs(node, [])
+
+    return best_path
+
+
 @router.post("/tree-of-thoughts")
 async def generate_tot(request: ToTRequest):
     llm = get_llm()
 
-    branches = [
-        {
-            "thoughts": [],
-            "score": 0,
-            "final_answer": None
-        }
-    ]
+    root = {
+        "thought": "Start solving the problem",
+        "score": 0,
+        "children": []
+    }
 
-    #  Tree Expansion
-    for depth in range(request.max_depth):
-        new_branches = []
+    # 🌳 Build full tree
+    expand_tree(
+        llm,
+        request.input,
+        root,
+        depth=0,
+        max_depth=request.max_depth,
+        num_branches=request.num_branches
+    )
 
-        for branch in branches:
-            context = "\n".join(branch["thoughts"])
+    # 🏆 Find best path
+    best_path_nodes = find_best_path(root)
 
-            for _ in range(request.num_branches):
-                prompt = build_tot_prompt(request.input, context)
+    best_path = [node["thought"] for node in best_path_nodes]
 
-                response = llm.invoke(prompt)
-                thought = response.content.strip()
-
-                final_answer = extract_final_answer(thought)
-
-                new_thoughts = branch["thoughts"] + [thought]
-                score = score_thought(thought)
-
-                new_branches.append({
-                    "thoughts": new_thoughts,
-                    "score": score,
-                    "final_answer": final_answer
-                })
-
-        #  Beam Search (keep best branches)
-        new_branches = sorted(
-            new_branches,
-            key=lambda x: x["score"],
-            reverse=True
-        )
-
-        branches = new_branches[:request.num_branches]
-
-    #  Best branch
-    best_branch = branches[0]
+    final_answer = None
+    for node in reversed(best_path_nodes):
+        final_answer = extract_final_answer(node["thought"])
+        if final_answer:
+            break
 
     return {
         "input": request.input,
-        "branches": branches,
-        "best_path": best_branch,
-        "final_answer": best_branch["final_answer"]
+        "tree": root,
+        "best_path": best_path,
+        "final_answer": final_answer
     }

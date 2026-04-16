@@ -1,15 +1,3 @@
-# def score_thought(thought: str):
-#     """
-#     Simple heuristic scoring:
-#     - Longer reasoning = better (for now)
-#     - can be upgraded later using LLM scoring
-#     """
-#     return len(thought)
-
-
-
-
-
 def score_thought(thought: str):
     score = 0
 

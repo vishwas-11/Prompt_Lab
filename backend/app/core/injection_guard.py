@@ -9,6 +9,10 @@ INJECTION_PATTERNS = [
     r"act as .* without restrictions",
     r"bypass .* safety",
     r"you are now .*",
+    r"ignore all instructions",
+    r"disregard all instructions",
+    r"ignore developer prompt",
+    r"ignore system prompt",
 ]
 
 
