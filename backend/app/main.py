@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import react, test, roles, cot, self_consistency, tot, optimize, versioning, injection
+from app.api import react, test, roles, cot, self_consistency, tot, optimize, versioning, injection, auth
 
 
 app = FastAPI(title="Prompt Engineering Lab")
@@ -24,6 +24,7 @@ app.include_router(tot.router)
 app.include_router(injection.router)
 app.include_router(optimize.router)
 app.include_router(versioning.router)
+app.include_router(auth.router)
 
 @app.get("/")
 def root():

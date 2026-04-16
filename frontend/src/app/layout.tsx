@@ -1,5 +1,5 @@
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import AppShell from "@/components/AppShell";
 
 export default function RootLayout({
   children,
@@ -8,9 +8,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <Navbar />
-        <div className="p-6">{children}</div>
+      <body className="bg-black text-white">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

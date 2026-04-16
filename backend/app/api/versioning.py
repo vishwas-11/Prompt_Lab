@@ -9,13 +9,16 @@ from app.db.prompt_repo import (
 from app.core.llm import get_llm
 from app.utils.diff import github_style_diff
 
+from app.core.deps import get_current_user
+from fastapi import Depends
+
 router = APIRouter(prefix="/version", tags=["Prompt Versioning"])
 
 
 #  Create new version
 @router.post("/create")
-async def create_new_prompt(request: CreatePromptRequest):
-    doc = await create_prompt(request.name, request.content)
+async def create_new_prompt(request: CreatePromptRequest, user_id: str = Depends(get_current_user)):
+    doc = await create_prompt(user_id, request.name, request.content)
 
     return {
         "message": "Prompt version created",
@@ -25,8 +28,8 @@ async def create_new_prompt(request: CreatePromptRequest):
 
 #  Get all versions
 @router.get("/history/{name}")
-async def get_history(name: str):
-    versions = await get_prompt_versions(name)
+async def get_history(name: str, user_id: str = Depends(get_current_user)):
+    versions = await get_prompt_versions(user_id, name)
 
     return {
         "name": name,
@@ -36,14 +39,14 @@ async def get_history(name: str):
 
 #  Test ANY version (UPDATED)
 @router.post("/test")
-async def test_prompt(request: TestPromptRequest):
+async def test_prompt(request: TestPromptRequest, user_id: str = Depends(get_current_user)):
     llm = get_llm()
 
     #  NEW: support version selection
     if request.version:
-        prompt = await get_prompt_by_version(request.name, request.version)
+        prompt = await get_prompt_by_version(user_id, request.name, request.version)
     else:
-        prompt = await get_latest_prompt(request.name)
+        prompt = await get_latest_prompt(user_id, request.name)
 
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
@@ -61,8 +64,8 @@ async def test_prompt(request: TestPromptRequest):
 
 #  Compare versions (structured diff)
 @router.get("/diff/{name}")
-async def compare_versions(name: str):
-    versions = await get_prompt_versions(name)
+async def compare_versions(name: str, user_id: str = Depends(get_current_user)):
+    versions = await get_prompt_versions(user_id, name)
 
     if len(versions) < 2:
         raise HTTPException(status_code=409, detail="Not enough versions")
