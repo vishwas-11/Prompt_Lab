@@ -27,7 +27,7 @@ def score_thought(thought: str):
     return score + len(thought)
 
 
-# 🌳 Recursive tree builder
+#  Recursive tree builder
 def expand_tree(llm, problem, node, depth, max_depth, num_branches):
     if depth >= max_depth:
         return
@@ -54,7 +54,7 @@ def expand_tree(llm, problem, node, depth, max_depth, num_branches):
         expand_tree(llm, problem, child_node, depth + 1, max_depth, num_branches)
 
 
-# 🏆 Extract best path
+#  Extract best path
 def find_best_path(node):
     best_path = []
     best_score = -1
@@ -89,7 +89,7 @@ async def generate_tot(request: ToTRequest):
         "children": []
     }
 
-    # 🌳 Build full tree
+    #  Build full tree
     expand_tree(
         llm,
         request.input,
@@ -99,7 +99,7 @@ async def generate_tot(request: ToTRequest):
         num_branches=request.num_branches
     )
 
-    # 🏆 Find best path
+    #  Find best path
     best_path_nodes = find_best_path(root)
 
     best_path = [node["thought"] for node in best_path_nodes]
