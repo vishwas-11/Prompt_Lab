@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.schemas.version_schema import CreatePromptRequest, TestPromptRequest
 from app.db.prompt_repo import create_prompt, get_prompt_versions, get_latest_prompt
 from app.core.llm import get_llm
@@ -37,7 +37,7 @@ async def test_prompt(request: TestPromptRequest):
     prompt = await get_latest_prompt(request.name)
 
     if not prompt:
-        return {"error": "Prompt not found"}
+        raise HTTPException(status_code=404, detail="Prompt not found")
 
     final_prompt = f"{prompt['content']}\n\nInput:\n{request.input}"
 
@@ -54,8 +54,11 @@ async def test_prompt(request: TestPromptRequest):
 async def compare_versions(name: str):
     versions = await get_prompt_versions(name)
 
+    if not versions:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+
     if len(versions) < 2:
-        return {"error": "Not enough versions to compare"}
+        raise HTTPException(status_code=409, detail="Not enough versions to compare")
 
     old = versions[-2]["content"]
     new = versions[-1]["content"]
