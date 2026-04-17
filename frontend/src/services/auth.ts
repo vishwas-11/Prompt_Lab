@@ -178,6 +178,7 @@ export const login = async (email: string, password: string) => {
     password,
   });
   storeAuthToken(response.data.token);
+  api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`;
   invalidateSessionCache();
   notifyAuthChange();
 };
@@ -188,6 +189,7 @@ export const register = async (email: string, password: string) => {
     password,
   });
   storeAuthToken(response.data.token);
+  api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`;
   invalidateSessionCache();
   notifyAuthChange();
 };
@@ -197,6 +199,7 @@ export const logout = async () => {
     await api.post("/auth/logout");
   } finally {
     clearAuthToken();
+    delete api.defaults.headers.common.Authorization;
   }
   invalidateSessionCache();
   notifyAuthChange();
@@ -231,7 +234,11 @@ export const getSession = async ({
   inFlightSessionToken = requestToken;
 
   inFlightSessionRequest = api
-    .get<SessionResponse>("/auth/session")
+    .get<SessionResponse>("/auth/session", {
+      headers: requestToken
+        ? { Authorization: `Bearer ${requestToken}` }
+        : undefined,
+    })
     .then((res) => {
       sessionCache = {
         token: requestToken,
