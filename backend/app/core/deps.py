@@ -1,4 +1,5 @@
 from fastapi import Header, HTTPException
+from jwt import ExpiredSignatureError, InvalidTokenError
 from app.core.security import verify_token
 
 async def get_current_user(authorization: str = Header(None)):
@@ -14,5 +15,9 @@ async def get_current_user(authorization: str = Header(None)):
     try:
         payload = verify_token(token)
         return payload["user_id"]
-    except:
+    except ExpiredSignatureError:
+        raise HTTPException(401, "Token expired")
+    except InvalidTokenError:
+        raise HTTPException(401, "Invalid token")
+    except KeyError:
         raise HTTPException(401, "Invalid token")
