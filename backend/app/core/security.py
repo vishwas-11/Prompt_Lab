@@ -1,7 +1,7 @@
-import jwt
 import os
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
+from jose import jwt
 
 load_dotenv()
 

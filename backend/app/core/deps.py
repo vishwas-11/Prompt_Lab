@@ -1,5 +1,5 @@
 from fastapi import Cookie, Header, HTTPException
-from jwt import ExpiredSignatureError, InvalidTokenError
+from jose.exceptions import ExpiredSignatureError, JWTError
 from app.core.security import AUTH_COOKIE_NAME, verify_token
 
 async def get_current_user(
@@ -24,7 +24,7 @@ async def get_current_user(
         return payload["user_id"]
     except ExpiredSignatureError:
         raise HTTPException(401, "Token expired")
-    except InvalidTokenError:
+    except JWTError:
         raise HTTPException(401, "Invalid token")
     except KeyError:
         raise HTTPException(401, "Invalid token")
