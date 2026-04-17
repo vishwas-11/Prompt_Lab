@@ -1,58 +1,10 @@
-// "use client";
-
-// import { usePathname, useRouter } from "next/navigation";
-// import { ReactNode, useEffect, useSyncExternalStore } from "react";
-// import { AUTH_TOKEN_EVENT } from "@/services/auth";
-
-// const PUBLIC_ROUTES = new Set(["/login", "/register"]);
-// const subscribeToStorage = (callback: () => void) => {
-//   window.addEventListener("storage", callback);
-//   window.addEventListener(AUTH_TOKEN_EVENT, callback);
-
-//   return () => {
-//     window.removeEventListener("storage", callback);
-//     window.removeEventListener(AUTH_TOKEN_EVENT, callback);
-//   };
-// };
-
-// export default function ProtectedRoute({ children }: { children: ReactNode }) {
-//   const pathname = usePathname();
-//   const router = useRouter();
-//   const isPublicRoute = PUBLIC_ROUTES.has(pathname);
-//   const hasToken = useSyncExternalStore<boolean | null>(
-//     isPublicRoute ? () => () => {} : subscribeToStorage,
-//     () => (isPublicRoute ? true : Boolean(window.localStorage.getItem("token"))),
-//     () => (isPublicRoute ? true : null)
-//   );
-
-//   useEffect(() => {
-//     if (!isPublicRoute && !hasToken) {
-//       router.replace("/login");
-//     }
-//   }, [hasToken, isPublicRoute, router]);
-
-//   if (!isPublicRoute && hasToken === null) {
-//     return null;
-//   }
-
-//   if (!isPublicRoute && !hasToken) {
-//     return null;
-//   }
-
-//   return children;
-// }
-
-
-
-
-
-
-
-
 "use client";
 
+import axios from "axios";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { AUTH_TOKEN_EVENT, getSession } from "@/services/auth";
 
 const PUBLIC_ROUTES = ["/", "/login", "/register"];
 
@@ -63,30 +15,68 @@ export default function ProtectedRoute({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const isPublic = PUBLIC_ROUTES.includes(pathname);
+    let isMounted = true;
 
-    // ❌ Not logged in & trying to access private route
-    if (!token && !isPublic) {
-      router.replace("/login");
-      return;
-    }
+    const syncAuthState = async () => {
+      try {
+        const session = await getSession();
 
-    // ❌ Logged in but trying to access login/register
-    if (token && (pathname === "/login" || pathname === "/register")) {
-      router.replace("/cot");
-      return;
-    }
+        if (!isMounted) {
+          return;
+        }
 
-    setLoading(false);
+        setIsAuthenticated(Boolean(session.authenticated));
+
+        if (isPublic && (pathname === "/login" || pathname === "/register")) {
+          router.replace("/cot");
+          return;
+        }
+      } catch (err: unknown) {
+        if (!isMounted) {
+          return;
+        }
+
+        if (axios.isAxiosError(err) && err.response?.status !== 401) {
+          console.error("Unable to verify session", err);
+        }
+
+        setIsAuthenticated(false);
+
+        if (!isPublic) {
+          router.replace("/login");
+          return;
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    const handleAuthChange = () => {
+      setLoading(true);
+      void syncAuthState();
+    };
+
+    void syncAuthState();
+    window.addEventListener(AUTH_TOKEN_EVENT, handleAuthChange);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener(AUTH_TOKEN_EVENT, handleAuthChange);
+    };
   }, [pathname, router]);
 
-  //  Block UI until auth check completes
   if (loading) {
+    return null;
+  }
+
+  if (!PUBLIC_ROUTES.includes(pathname) && !isAuthenticated) {
     return null;
   }
 

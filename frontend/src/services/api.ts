@@ -1,21 +1,13 @@
 import axios from "axios";
 
+const defaultApiBaseUrl =
+  typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:8000`
+    : "http://localhost:8000";
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000",
-});
-
-api.interceptors.request.use((config) => {
-  if (typeof window === "undefined") {
-    return config;
-  }
-
-  const token = window.localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
+  baseURL: process.env.NEXT_PUBLIC_API_URL || defaultApiBaseUrl,
+  withCredentials: true,
 });
 
 export default api;

@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import react, test, roles, cot, self_consistency, tot, optimize, versioning, injection, auth
@@ -5,10 +7,16 @@ from app.api import react, test, roles, cot, self_consistency, tot, optimize, ve
 
 app = FastAPI(title="Prompt Engineering Lab")
 
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    if origin.strip()
+]
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
