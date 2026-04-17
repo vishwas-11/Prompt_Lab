@@ -13,7 +13,7 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "https://prompt-lab-swart-nine.vercel.app",
     ],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
