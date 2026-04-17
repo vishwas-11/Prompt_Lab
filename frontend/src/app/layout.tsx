@@ -12,7 +12,7 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  // ❌ Hide navbar on public pages
+  //  Hide navbar on public pages
   const hideNavbar =
     pathname === "/" ||
     pathname === "/login" ||
