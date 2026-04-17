@@ -133,11 +133,13 @@ type AuthResponse = {
 
 type SessionCacheEntry = {
   expiresAt: number;
+  token: string | null;
   value: SessionResponse;
 };
 
 let sessionCache: SessionCacheEntry | null = null;
 let inFlightSessionRequest: Promise<SessionResponse> | null = null;
+let inFlightSessionToken: string | null = null;
 
 export const notifyAuthChange = () => {
   if (typeof window !== "undefined") {
@@ -148,6 +150,7 @@ export const notifyAuthChange = () => {
 const invalidateSessionCache = () => {
   sessionCache = null;
   inFlightSessionRequest = null;
+  inFlightSessionToken = null;
 };
 
 const storeAuthToken = (token: string) => {
@@ -160,6 +163,13 @@ const clearAuthToken = () => {
   if (typeof window !== "undefined") {
     window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
   }
+};
+
+const getAuthToken = (): string | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
 };
 
 export const login = async (email: string, password: string) => {
@@ -198,19 +208,33 @@ export const getSession = async ({
   force?: boolean;
 } = {}) => {
   const now = Date.now();
+  const currentToken = getAuthToken();
 
-  if (!force && sessionCache && sessionCache.expiresAt > now) {
+  if (
+    !force &&
+    sessionCache &&
+    sessionCache.token === currentToken &&
+    sessionCache.expiresAt > now
+  ) {
     return sessionCache.value;
   }
 
-  if (!force && inFlightSessionRequest) {
+  if (
+    !force &&
+    inFlightSessionRequest &&
+    inFlightSessionToken === currentToken
+  ) {
     return inFlightSessionRequest;
   }
+
+  const requestToken = currentToken;
+  inFlightSessionToken = requestToken;
 
   inFlightSessionRequest = api
     .get<SessionResponse>("/auth/session")
     .then((res) => {
       sessionCache = {
+        token: requestToken,
         value: res.data,
         expiresAt: Date.now() + SESSION_CACHE_TTL_MS,
       };
@@ -223,14 +247,18 @@ export const getSession = async ({
       // timeouts, or 502s from Render cold starts
       const status = error?.response?.status;
       if (status === 401) {
-        clearAuthToken();
-        notifyAuthChange();
+        // Prevent stale session requests from wiping fresh logins.
+        if (getAuthToken() === requestToken) {
+          clearAuthToken();
+          notifyAuthChange();
+        }
       }
 
       throw error;
     })
     .finally(() => {
       inFlightSessionRequest = null;
+      inFlightSessionToken = null;
     });
 
   return inFlightSessionRequest;
