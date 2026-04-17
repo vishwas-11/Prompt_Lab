@@ -22,11 +22,7 @@ async def register(req: RegisterRequest):
     existing = await get_user_by_email(req.email)
 
     if existing:
-        if verify_password(req.password, existing["password"]):
-            token = create_token({"user_id": str(existing["_id"])})
-            return {"token": token}
-
-        raise HTTPException(400, "User already exists")
+        raise HTTPException(409, "User already exists")
 
     hashed = hash_password(req.password)
 
