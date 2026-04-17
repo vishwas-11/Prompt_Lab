@@ -51,7 +51,7 @@ pyasn1==0.6.3
 pydantic==2.13.0
 pydantic-settings==2.13.1
 pydantic_core==2.46.0
-PyJWT==2.12.1
+# PyJWT==2.12.1
 pymongo==4.16.0
 python-dotenv==1.2.2
 python-jose==3.5.0
