@@ -5,7 +5,11 @@ async def get_current_user(authorization: str = Header(None)):
     if not authorization:
         raise HTTPException(401, "Missing token")
 
-    token = authorization.split(" ")[1]
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1]:
+        raise HTTPException(401, "Invalid authorization header")
+
+    token = parts[1]
 
     try:
         payload = verify_token(token)
