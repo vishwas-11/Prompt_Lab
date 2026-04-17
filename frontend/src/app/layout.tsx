@@ -1,15 +1,24 @@
+"use client";
+
 import "./globals.css";
-import AppShell from "@/components/AppShell";
+import Navbar from "@/components/Navbar";
+import { usePathname } from "next/navigation";
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  const hideNavbar = pathname === "/" || pathname === "/login" || pathname === "/register";
+
   return (
     <html lang="en">
       <body className="bg-black text-white">
-        <AppShell>{children}</AppShell>
+        {!hideNavbar && <Navbar />}
+
+        <div className="p-6">{children}</div>
       </body>
     </html>
   );

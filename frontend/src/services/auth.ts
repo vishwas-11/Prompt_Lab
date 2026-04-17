@@ -21,5 +21,12 @@ export const register = async (email: string, password: string) => {
   return res.data.token as string;
 };
 
+export const logout = () => {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem("token");
+    window.dispatchEvent(new Event(AUTH_TOKEN_EVENT));
+  }
+};
+
 export const getToken = () =>
   typeof window !== "undefined" ? window.localStorage.getItem("token") : null;
