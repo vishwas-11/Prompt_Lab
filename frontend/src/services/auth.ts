@@ -1,11 +1,17 @@
 import api from "./api";
 
 export const AUTH_TOKEN_EVENT = "auth-token-changed";
+const AUTH_TOKEN_STORAGE_KEY = "auth_token";
 const SESSION_CACHE_TTL_MS = 5000;
 
 type SessionResponse = {
   authenticated: boolean;
   user_id: string;
+};
+
+type AuthResponse = {
+  authenticated: boolean;
+  token: string;
 };
 
 type SessionCacheEntry = {
@@ -27,20 +33,38 @@ const invalidateSessionCache = () => {
   inFlightSessionRequest = null;
 };
 
+const storeAuthToken = (token: string) => {
+  if (typeof window !== "undefined") {
+    window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+  }
+};
+
+const clearAuthToken = () => {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  }
+};
+
 export const login = async (email: string, password: string) => {
-  await api.post("/auth/login", { email, password });
+  const response = await api.post<AuthResponse>("/auth/login", { email, password });
+  storeAuthToken(response.data.token);
   invalidateSessionCache();
   notifyAuthChange();
 };
 
 export const register = async (email: string, password: string) => {
-  await api.post("/auth/register", { email, password });
+  const response = await api.post<AuthResponse>("/auth/register", { email, password });
+  storeAuthToken(response.data.token);
   invalidateSessionCache();
   notifyAuthChange();
 };
 
 export const logout = async () => {
-  await api.post("/auth/logout");
+  try {
+    await api.post("/auth/logout");
+  } finally {
+    clearAuthToken();
+  }
   invalidateSessionCache();
   notifyAuthChange();
 };
@@ -71,6 +95,9 @@ export const getSession = async ({
     })
     .catch((error) => {
       sessionCache = null;
+      if (error?.response?.status === 401) {
+        clearAuthToken();
+      }
       throw error;
     })
     .finally(() => {
