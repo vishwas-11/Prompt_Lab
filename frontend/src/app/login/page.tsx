@@ -13,9 +13,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async () => {
-    if (loading) {
-      return;
-    }
+    if (loading) return;
 
     if (!email.trim() || !password.trim()) {
       setError("Email and password are required");
@@ -30,10 +28,12 @@ export default function LoginPage() {
       router.refresh();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        setError((err.response?.data as { detail?: string } | undefined)?.detail || "Login failed");
+        setError(
+          (err.response?.data as { detail?: string } | undefined)?.detail ||
+            "Login failed"
+        );
         return;
       }
-
       setError("Login failed");
     } finally {
       setLoading(false);
@@ -41,16 +41,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex justify-center items-center h-[80vh]">
-      <div className="bg-gray-900 p-6 rounded w-full max-w-md space-y-4">
-        <h1 className="text-xl font-semibold">Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-black text-white relative overflow-hidden">
+
+      {/* BACKGROUND GLOW */}
+      <div className="absolute w-[500px] h-[500px] bg-blue-600 opacity-20 blur-[120px] rounded-full top-[-100px] left-[-100px]" />
+      <div className="absolute w-[400px] h-[400px] bg-purple-600 opacity-20 blur-[120px] rounded-full bottom-[-100px] right-[-100px]" />
+
+      {/* CARD */}
+      <div className="z-10 w-full max-w-md bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-8 space-y-5 shadow-lg">
+
+        <h1 className="text-2xl font-bold text-center">
+          🔐 Welcome Back
+        </h1>
 
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 bg-gray-800 rounded"
+          className="w-full p-3 bg-black/40 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500"
         />
 
         <input
@@ -58,7 +67,7 @@ export default function LoginPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 bg-gray-800 rounded"
+          className="w-full p-3 bg-black/40 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500"
         />
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -66,16 +75,16 @@ export default function LoginPage() {
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full bg-blue-600 py-2 rounded hover:bg-blue-700 disabled:opacity-70"
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 py-3 rounded-lg font-semibold hover:scale-[1.02] transition disabled:opacity-70"
         >
           {loading ? "Signing in..." : "Login"}
         </button>
 
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-400 text-center">
           Need an account?{" "}
           <span
             onClick={() => router.push("/register")}
-            className="text-blue-400 cursor-pointer"
+            className="text-blue-400 cursor-pointer hover:underline"
           >
             Register
           </span>

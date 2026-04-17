@@ -2,6 +2,7 @@
 
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { usePathname } from "next/navigation";
 
 export default function RootLayout({
@@ -11,14 +12,20 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  const hideNavbar = pathname === "/" || pathname === "/login" || pathname === "/register";
+  // ❌ Hide navbar on public pages
+  const hideNavbar =
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/register";
 
   return (
     <html lang="en">
       <body className="bg-black text-white">
-        {!hideNavbar && <Navbar />}
+        <ProtectedRoute>
+          {!hideNavbar && <Navbar />}
 
-        <div className="p-6">{children}</div>
+          <div className="p-6">{children}</div>
+        </ProtectedRoute>
       </body>
     </html>
   );

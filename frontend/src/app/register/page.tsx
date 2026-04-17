@@ -14,9 +14,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
 
   const handleRegister = async () => {
-    if (loading) {
-      return;
-    }
+    if (loading) return;
 
     if (!email.trim() || !password.trim()) {
       setError("Email and password are required");
@@ -33,7 +31,8 @@ export default function RegisterPage() {
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(
-          (err.response?.data as { detail?: string } | undefined)?.detail || "Registration failed"
+          (err.response?.data as { detail?: string } | undefined)?.detail ||
+            "Registration failed"
         );
         return;
       }
@@ -45,16 +44,25 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex justify-center items-center h-[80vh]">
-      <div className="bg-gray-900 p-6 rounded w-full max-w-md space-y-4">
-        <h1 className="text-xl font-semibold">Register</h1>
+    <div className="min-h-screen flex items-center justify-center bg-black text-white relative overflow-hidden">
+
+      {/* BACKGROUND GLOW */}
+      <div className="absolute w-[500px] h-[500px] bg-green-600 opacity-20 blur-[120px] rounded-full top-[-100px] left-[-100px]" />
+      <div className="absolute w-[400px] h-[400px] bg-blue-600 opacity-20 blur-[120px] rounded-full bottom-[-100px] right-[-100px]" />
+
+      {/* CARD */}
+      <div className="z-10 w-full max-w-md bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl p-8 space-y-5 shadow-lg">
+
+        <h1 className="text-2xl font-bold text-center">
+          📝 Create Account
+        </h1>
 
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 bg-gray-800 rounded"
+          className="w-full p-3 bg-black/40 border border-gray-700 rounded-lg focus:outline-none focus:border-green-500"
         />
 
         <input
@@ -62,7 +70,7 @@ export default function RegisterPage() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 bg-gray-800 rounded"
+          className="w-full p-3 bg-black/40 border border-gray-700 rounded-lg focus:outline-none focus:border-green-500"
         />
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -70,16 +78,16 @@ export default function RegisterPage() {
         <button
           onClick={handleRegister}
           disabled={loading}
-          className="w-full bg-green-600 py-2 rounded hover:bg-green-700 disabled:opacity-70"
+          className="w-full bg-gradient-to-r from-green-500 to-emerald-600 py-3 rounded-lg font-semibold hover:scale-[1.02] transition disabled:opacity-70"
         >
           {loading ? "Creating..." : "Register"}
         </button>
 
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-gray-400 text-center">
           Already have an account?{" "}
           <span
             onClick={() => router.push("/login")}
-            className="text-blue-400 cursor-pointer"
+            className="text-blue-400 cursor-pointer hover:underline"
           >
             Login
           </span>
