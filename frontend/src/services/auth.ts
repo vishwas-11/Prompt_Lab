@@ -213,6 +213,17 @@ export const getSession = async ({
   const now = Date.now();
   const currentToken = getAuthToken();
 
+  if (!currentToken) {
+    sessionCache = null;
+    inFlightSessionRequest = null;
+    inFlightSessionToken = null;
+    const error = new Error("Missing token");
+    (error as Error & { response?: { status: number } }).response = {
+      status: 401,
+    };
+    throw error;
+  }
+
   if (
     !force &&
     sessionCache &&
@@ -255,7 +266,7 @@ export const getSession = async ({
       const status = error?.response?.status;
       if (status === 401) {
         // Prevent stale session requests from wiping fresh logins.
-        if (getAuthToken() === requestToken) {
+        if (requestToken && getAuthToken() === requestToken) {
           clearAuthToken();
           notifyAuthChange();
         }

@@ -116,6 +116,21 @@ export default function ProtectedRoute({
     let isMounted = true;
 
     const syncAuthState = async () => {
+      const token =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("auth_token")
+          : null;
+
+      if (!token) {
+        if (!isMounted) return;
+        setIsAuthenticated(false);
+        if (!isPublic) {
+          router.replace("/login");
+          return;
+        }
+        return;
+      }
+
       try {
         const session = await getSession();
 
