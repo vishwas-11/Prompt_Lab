@@ -27,7 +27,16 @@ def get_cookie_secure() -> bool:
 
 
 def get_cookie_samesite() -> str:
-    return os.getenv("COOKIE_SAMESITE", "lax").lower()
+    configured = os.getenv("COOKIE_SAMESITE")
+    if configured:
+        return configured.lower()
+
+    # Cross-origin frontend/backend deployments need SameSite=None so the
+    # browser will attach the auth cookie on XHR/fetch requests.
+    if get_cookie_secure():
+        return "none"
+
+    return "lax"
 
 def create_token(data: dict):
     payload = data.copy()
