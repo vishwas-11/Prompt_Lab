@@ -124,6 +124,7 @@ export default function ProtectedRoute({
       if (!token) {
         if (!isMounted) return;
         setIsAuthenticated(false);
+        setLoading(false);
         if (!isPublic) {
           router.replace("/login");
           return;
