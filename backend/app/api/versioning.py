@@ -84,14 +84,18 @@ async def compare_versions(name: str, user_id: str = Depends(get_current_user)):
 
 #  ROLLBACK FEATURE
 @router.post("/rollback")
-async def rollback_prompt(name: str, version: int):
-    prompt = await get_prompt_by_version(name, version)
+async def rollback_prompt(
+    name: str,
+    version: int,
+    user_id: str = Depends(get_current_user)
+):
+    prompt = await get_prompt_by_version(user_id, name, version)
 
     if not prompt:
         raise HTTPException(status_code=404, detail="Version not found")
 
     # create new version with old content
-    new_doc = await create_prompt(name, prompt["content"])
+    new_doc = await create_prompt(user_id, name, prompt["content"])
 
     return {
         "message": f"Rolled back to version {version}",

@@ -202,9 +202,9 @@ export default function ReactPage() {
               executes tools until the task is resolved.
             </p>
           </div>
-          <div className="mt-1">
+          {/* <div className="mt-1">
             <ModuleSelector />
-          </div>
+          </div> */}
         </motion.div>
 
         {/* ── INPUT AREA ── */}
