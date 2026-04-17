@@ -43,6 +43,11 @@ interface BackendTotResponse {
   final_answer: string | null;
 }
 
+const MIN_BRANCHES = 2;
+const MAX_BRANCHES = 4;
+const MIN_DEPTH = 2;
+const MAX_DEPTH = 4;
+
 function scoreColor(score: number): string {
   if (score >= 0.8) return "#4ADE80";
   if (score >= 0.6) return "#FACC15";
@@ -463,14 +468,14 @@ export default function TreeOfThoughtsPage() {
                   </div>
                   <input
                     type="range"
-                    min={2}
-                    max={6}
+                    min={MIN_BRANCHES}
+                    max={MAX_BRANCHES}
                     value={branches}
                     onChange={(e) => setBranches(Number(e.target.value))}
                     className="h-1 w-full cursor-pointer rounded-full bg-white/10 accent-blue-400 outline-none"
                   />
                   <div className="mt-1 flex justify-between">
-                    {[2, 3, 4, 5, 6].map((value) => (
+                    {[2, 3, 4].map((value) => (
                       <span
                         key={value}
                         style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px" }}
@@ -499,14 +504,14 @@ export default function TreeOfThoughtsPage() {
                   </div>
                   <input
                     type="range"
-                    min={2}
-                    max={5}
+                    min={MIN_DEPTH}
+                    max={MAX_DEPTH}
                     value={depth}
                     onChange={(e) => setDepth(Number(e.target.value))}
                     className="h-1 w-full cursor-pointer rounded-full bg-white/10 accent-blue-400 outline-none"
                   />
                   <div className="mt-1 flex justify-between">
-                    {[2, 3, 4, 5].map((value) => (
+                    {[2, 3, 4].map((value) => (
                       <span
                         key={value}
                         style={{ fontFamily: "'DM Mono', monospace", fontSize: "9px" }}
@@ -529,6 +534,7 @@ export default function TreeOfThoughtsPage() {
                 >
                   ToT explores multiple reasoning paths simultaneously, scoring each
                   branch and selecting the strongest path returned by the backend.
+                  Parameters are capped to keep tree growth and runtime predictable.
                 </p>
               </div>
             </div>
