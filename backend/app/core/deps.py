@@ -8,13 +8,15 @@ async def get_current_user(
 ):
     token = None
 
-    if auth_cookie:
-        token = auth_cookie
-    elif authorization:
+    # Prefer Authorization header first so stale cookies cannot override
+    # a freshly issued bearer token from the frontend.
+    if authorization:
         parts = authorization.split()
         if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1]:
             raise HTTPException(401, "Invalid authorization header")
         token = parts[1]
+    elif auth_cookie:
+        token = auth_cookie
 
     if not token:
         raise HTTPException(401, "Missing token")
