@@ -47,7 +47,7 @@ export default function CoTPage() {
           <div className="flex items-center gap-3 mb-2">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
             <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "11px" }} className="text-white/30 tracking-[0.2em] uppercase">
-              Technique
+              AGENT FRAMEWORK - CHAIN OF THOUGHTS
             </span>
           </div>
           <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "clamp(1.5rem,3vw,2rem)" }} className="font-extrabold text-white">

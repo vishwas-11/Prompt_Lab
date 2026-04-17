@@ -14,6 +14,7 @@ const navLinks = [
   { label: "Optimize", href: "/optimize" },
   { label: "Versioning", href: "/version" },
   { label: "Security", href: "/security" },
+  { label: "Self-Consistency", href: "/self-consistency"}
 ];
 
 export default function Navbar() {
