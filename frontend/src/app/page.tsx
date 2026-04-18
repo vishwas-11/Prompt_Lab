@@ -58,6 +58,15 @@ const features = [
   },
 ];
 
+const featureRoutes: Record<string, string> = {
+  "Chain-of-Thought": "/cot",
+  "Tree-of-Thoughts": "/tot",
+  "Prompt Optimization": "/optimize",
+  "Prompt Versioning": "/version",
+  "Injection Guard": "/security",
+  "Role Prompting": "/roles",
+};
+
 const ticker = [
   "Chain-of-Thought",
   "Tree-of-Thoughts",
@@ -71,6 +80,14 @@ const ticker = [
 
 export default function HomePage() {
   const router = useRouter();
+  const handleExplore = (title: string) => {
+    const hasToken =
+      typeof window !== "undefined" &&
+      Boolean(window.localStorage.getItem("auth_token"));
+    const targetRoute = featureRoutes[title] ?? "/cot";
+
+    router.push(hasToken ? targetRoute : "/login");
+  };
 
   return (
     <div
@@ -320,7 +337,11 @@ export default function HomePage() {
                   {f.desc}
                 </p>
 
-                <div className="mt-6 flex items-center gap-2 text-white/20 group-hover:text-white/50 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => handleExplore(f.title)}
+                  className="mt-6 flex items-center gap-2 text-white/20 group-hover:text-white/50 transition-colors"
+                >
                   <span
                     style={{
                       fontFamily: "'DM Mono', monospace",
@@ -331,7 +352,7 @@ export default function HomePage() {
                     Explore
                   </span>
                   <ArrowRight size={11} />
-                </div>
+                </button>
               </motion.div>
             );
           })}
